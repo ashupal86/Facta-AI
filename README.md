@@ -1,25 +1,31 @@
-# Backend Crawler and Orchestration
+## Frontend 
 
-## Overview
+![image](screen1.png)
+
+![image](screen2.png)
+
+## Backend Crawler and Orchestration
+
+### Overview
 
 This system is a distributed news/blog crawler and orchestration platform that provides real-time content aggregation with intelligent caching and vector-based search capabilities. The architecture separates concerns between client-facing services, data storage, and background processing workers.
 
 ---
 
-## Architecture Components
+### Architecture Components
 
-### 1. **Load Balancer (LB)**
+#### 1. **Load Balancer (LB)**
 - Distributes incoming client requests across multiple Gateway API instances
 - Provides high availability and load distribution
 - Health checks and failover capabilities
 
-### 2. **Agent (AI)**
+#### 2. **Agent (AI)**
 - Normalizes and processes client requests
 - Uses LLM (Ollama with Qwen2.5:7b-instruct) to understand context
 - Transforms user queries into structured search requests
 - Acts as an intelligent request preprocessor
 
-### 3. **Gateway API (GAPI)**
+#### 3. **Gateway API (GAPI)**
 - Primary interface for serving news/blog content
 - Implements multi-tier caching strategy:
   - **Hot Cache (Redis)**: Fast in-memory cache for frequently accessed content
@@ -27,19 +33,19 @@ This system is a distributed news/blog crawler and orchestration platform that p
 - Returns data in JSON format
 - Triggers backend orchestration when content is not available
 
-### 4. **Redis (Hot Cache)**
+#### 4. **Redis (Hot Cache)**
 - In-memory key-value store for frequently accessed news items
 - Reduces latency for popular queries
 - Cache invalidation strategies for data freshness
 - TTL-based expiration for automatic cache management
 
-### 5. **Vector Database**
+#### 5. **Vector Database**
 - Stores news/blog articles as embeddings
 - Enables semantic search and similarity matching
 - Supports JSON document storage with vector indices
 - Used for serving content when not in hot cache
 
-### 6. **Backend Orchestration (BO)**
+#### 6. **Backend Orchestration (BO)**
 - Central coordinator for all crawling operations
 - Manages worker pools (Active and Passive)
 - Handles task distribution and load balancing
@@ -48,7 +54,58 @@ This system is a distributed news/blog crawler and orchestration platform that p
 
 ---
 
-## Client Serving Flowchart
+### Flowchart
+
+```mermaid
+flowchart TD
+  %% === ENTRY ===
+  A[User Input / Claim] --> B[EXPRESS GATEWAY + NORMALIZER OpenAI \n- Clean & normalize claim\n- Extract entities & media type\n- Generate claim_hash sha256]
+
+  %% === CACHE ===
+  B --> C{REDIS HOT CACHE\ncache:claim:claim_hash}
+  C -->|HIT| D[REUSE CACHED VERDICT\n+ Pinecone memory context]
+  C -->|MISS| E{PINECONE SEMANTIC OPS}
+
+  %% === SEMANTIC LAYER (PINECONE) ===
+  E -->|Semantic Expand\n top_k = 5| F[Pinecone Semantic Expand\n- fetch related memory]
+  E -->|Semantic Search\n top_k = 3\n if sim ≥ 0.88 → Prisma| G[Pinecone Semantic Search]
+
+  %% === ORCHESTRATION ===
+  F --> H[FASTAPI ORCHESTRATION ENGINE\n- Build workflow graph\n- Trigger Celery tasks\n- Save task_id → Redis]
+  G --> H
+
+  %% === WORKER PIPELINE (ASYNC TASKS) ===
+  H --> I[WORKER PIPELINE]
+
+  subgraph WORKERS [WORKER PIPELINE]
+    direction TB
+    I1[1. Exa verified news search]
+    I2[2. Evidence extraction]
+    I3[3. Media forensics img/video]
+    I4[4. Credibility scoring]
+    I5[5. Contradiction analysis]
+
+    I1 --> I2 --> I3 --> I4 --> I5
+  end
+
+  %% === FINAL VERDICT AGENT ===
+  D --> J[FINAL VERDICT AGENT LLM\n- Combine cached + new evidence\n- True / False / Misleading\n- Confidence + explanation]
+  I5 --> J
+
+  %% === MEMORY WRITE LAYER ===
+  J --> K[MEMORY WRITE]
+  K --> L[Redis → cache verdict]
+  K --> M[Pinecone → store embedding + summary]
+  K --> N[Prisma SQL DB →\n full claim history + evidence]
+
+  %% === BLOG / CONTENT LAYER ===
+  J --> O[BLOG WRITER AGENT LLM\n- Auto-generate fact-check article\n- Save draft]
+  O --> P[Prisma → /blog/drafts]
+
+  %% === RESPONSE ===
+  J --> Q[FINAL RESPONSE TO USER\n- Verdict + confidence\n- Key evidence + sources\n- Optional blog link]
+```
+### Client Serving Flowchart
 
 ```mermaid
 graph TD;
@@ -72,7 +129,7 @@ BO[Backend Orchestration]
 GAPI<--->|"Used for serving NEWS Blog **type:JSON**"|DB
 ```
 
-### Request Flow Explanation
+#### Request Flow Explanation
 
 1. **Client Request**: User sends a request through the Load Balancer
 2. **Agent Processing**: LLM agent normalizes and understands the request context
@@ -89,7 +146,7 @@ GAPI<--->|"Used for serving NEWS Blog **type:JSON**"|DB
 
 ---
 
-## Backend Orchestration Flow Chart
+### Backend Orchestration Flow Chart
 
 ```mermaid
 graph TD;
@@ -121,15 +178,15 @@ GAPI[Gateway API]-->|Trigger on-demand crawl|BO
 
 ---
 
-## Backend Orchestration: Detailed Architecture
+### Backend Orchestration: Detailed Architecture
 
-### Core Responsibilities
+#### Core Responsibilities
 
 The Backend Orchestration system is the **brain** of the crawling infrastructure. It coordinates all background operations and ensures efficient resource utilization.
 
-#### 1. **Worker Pool Management**
+##### 1. **Worker Pool Management**
 
-##### Active Workers (Continuous Crawling)
+###### Active Workers (Continuous Crawling)
 - **Purpose**: Proactively crawl verified news sources on a scheduled basis
 - **Operation Mode**: 
   - Run continuously in the background
@@ -149,7 +206,7 @@ The Backend Orchestration system is the **brain** of the crawling infrastructure
   - Reduces latency for common queries
   - Ensures data freshness
 
-##### Passive Workers (On-Demand Crawling)
+###### Passive Workers (On-Demand Crawling)
 - **Purpose**: Handle specific user requests for content not in the system
 - **Operation Mode**:
   - Idle until triggered by Gateway API
@@ -170,7 +227,7 @@ The Backend Orchestration system is the **brain** of the crawling infrastructure
   - Provides real-time content for specific queries
   - Efficient resource usage (only active when needed)
 
-#### 2. **Task Queue System**
+##### 2. **Task Queue System**
 
 The orchestrator uses a task queue (e.g., Redis Queue, Celery, or RabbitMQ) to:
 - **Distribute Tasks**: Assign crawl jobs to available workers
@@ -179,7 +236,7 @@ The orchestrator uses a task queue (e.g., Redis Queue, Celery, or RabbitMQ) to:
 - **Retry Logic**: Handle failed crawls with exponential backoff
 - **Task Tracking**: Monitor task status and completion
 
-#### 3. **Data Processing Pipeline**
+##### 3. **Data Processing Pipeline**
 
 ```
 Raw Content → Content Extraction → Text Cleaning → 
@@ -196,7 +253,7 @@ Deduplication Check → Vector DB Storage → Cache Update
 6. **Storage**: Insert into Vector DB with embeddings and metadata
 7. **Cache Update**: Optionally update Redis hot cache for popular content
 
-#### 4. **Worker Health Monitoring**
+##### 4. **Worker Health Monitoring**
 
 - **Heartbeat System**: Workers send periodic health signals
 - **Failure Detection**: Detect crashed or unresponsive workers
@@ -204,7 +261,7 @@ Deduplication Check → Vector DB Storage → Cache Update
 - **Resource Monitoring**: Track CPU, memory, network usage
 - **Rate Limiting**: Monitor and enforce crawl rate limits per source
 
-#### 5. **Source Management**
+##### 5. **Source Management**
 
 - **Verified Sources List**: Maintains database of trusted news sources
 - **Crawl Schedules**: Configurable intervals per source (respects robots.txt)
@@ -214,13 +271,13 @@ Deduplication Check → Vector DB Storage → Cache Update
 
 ---
 
-## Credibility-Based Source Management
+### Credibility-Based Source Management
 
-### Source Classification
+#### Source Classification
 
 The system uses a **two-tier source classification** based on credibility scores:
 
-#### **Primary Sources (85+ Credibility Score)**
+##### **Primary Sources (85+ Credibility Score)**
 - **Purpose**: Main content sources for continuous crawling
 - **Crawled By**: Active Workers (continuous, scheduled crawling)
 - **Examples**: Reuters (95), Associated Press (94), BBC News (92), The Guardian (90), The New York Times (91)
@@ -230,7 +287,7 @@ The system uses a **two-tier source classification** based on credibility scores
   - Widely recognized credibility
   - Used as primary content sources
 
-#### **Verification Sources (< 85 Credibility Score)**
+##### **Verification Sources (< 85 Credibility Score)**
 - **Purpose**: Used for verification and context when news is not available in primary sources
 - **Crawled By**: Passive Workers (on-demand only)
 - **Examples**: CNN (78), Fox News (72), Al Jazeera (82), Politico (80)
@@ -240,16 +297,16 @@ The system uses a **two-tier source classification** based on credibility scores
   - Used to verify facts and add context
   - Helps in cross-referencing and fact-checking
 
-### Crawling Strategy
+#### Crawling Strategy
 
-#### **Active Worker Behavior (Primary Sources)**
+##### **Active Worker Behavior (Primary Sources)**
 1. **Continuous Monitoring**: Active workers continuously monitor primary sources (85+ credibility)
 2. **Scheduled Crawling**: Each source has a configurable crawl interval (e.g., every 15 minutes)
 3. **Rate Limiting**: Strict rate limits enforced per source to respect their policies
 4. **Content Normalization**: All crawled content is immediately processed by the agent
 5. **Storage**: Normalized content is stored in Vector DB for fast retrieval
 
-#### **Passive Worker Behavior (Verification Sources)**
+##### **Passive Worker Behavior (Verification Sources)**
 1. **On-Demand Activation**: Passive workers remain idle until triggered
 2. **Trigger Conditions**: Activated when:
    - User query doesn't match content in primary sources
@@ -259,7 +316,7 @@ The system uses a **two-tier source classification** based on credibility scores
 4. **Contextual Crawling**: Only crawls sources relevant to the query
 5. **Verification Focus**: Used primarily to verify and add context to primary source content
 
-### Rate Limiting Strategy
+#### Rate Limiting Strategy
 
 The system implements **multi-level rate limiting** to ensure responsible crawling:
 
@@ -278,7 +335,7 @@ The system implements **multi-level rate limiting** to ensure responsible crawli
    - Exponential backoff for failed requests
    - Respects robots.txt when available
 
-### Content Normalization Flow
+#### Content Normalization Flow
 
 When content is crawled, it goes through the following normalization process:
 
@@ -301,7 +358,7 @@ Storage in Vector DB
 Available for Serving
 ```
 
-### Agent Prompt and JSON Output
+#### Agent Prompt and JSON Output
 
 The agent uses a specialized prompt (see `agent_prompt.txt`) to normalize content and produce structured JSON output:
 
@@ -325,7 +382,7 @@ The agent uses a specialized prompt (see `agent_prompt.txt`) to normalize conten
 - **MISLEADING**: Contains truth but presented misleadingly
 - **FALSE**: Demonstrably false or incorrect
 
-### Source Configuration
+#### Source Configuration
 
 Sources are configured in `sources.json` with the following structure:
 
@@ -363,7 +420,7 @@ Sources are configured in `sources.json` with the following structure:
 }
 ```
 
-### Workflow Example
+#### Workflow Example
 
 **Scenario**: User queries for "latest AI breakthrough news"
 
@@ -384,9 +441,9 @@ Sources are configured in `sources.json` with the following structure:
 
 ---
 
-## Implementation Details
+### Implementation Details
 
-### Technology Stack
+#### Technology Stack
 
 - **Orchestrator**: Python (FastAPI/Flask for API, Celery/Redis Queue for task management)
 - **Workers**: Python with async/threading support
@@ -396,7 +453,7 @@ Sources are configured in `sources.json` with the following structure:
 - **Task Queue**: Redis Queue (RQ), Celery, or RabbitMQ
 - **LLM Integration**: Ollama API (Qwen2.5:7b-instruct) for embeddings and content processing
 
-### Key Design Patterns
+#### Key Design Patterns
 
 1. **Producer-Consumer Pattern**: Orchestrator produces tasks, workers consume
 2. **Pool Pattern**: Worker pools for efficient resource management
@@ -404,7 +461,7 @@ Sources are configured in `sources.json` with the following structure:
 4. **Strategy Pattern**: Different crawling strategies per source type
 5. **Circuit Breaker**: Prevent cascading failures from problematic sources
 
-### Configuration Management
+#### Configuration Management
 
 ```python
 # Example configuration structure
@@ -433,7 +490,7 @@ Sources are configured in `sources.json` with the following structure:
 }
 ```
 
-### Error Handling & Resilience
+#### Error Handling & Resilience
 
 - **Retry Logic**: Exponential backoff for transient failures
 - **Dead Letter Queue**: Store permanently failed tasks for analysis
@@ -443,9 +500,9 @@ Sources are configured in `sources.json` with the following structure:
 
 ---
 
-## Data Flow Examples
+### Data Flow Examples
 
-### Example 1: Active Worker Crawling
+#### Example 1: Active Worker Crawling
 ```
 1. Orchestrator schedules crawl for "techcrunch.com"
 2. Assigns task to Active Worker 1
@@ -458,7 +515,7 @@ Sources are configured in `sources.json` with the following structure:
 9. Worker reports completion, ready for next task
 ```
 
-### Example 2: Passive Worker On-Demand
+#### Example 2: Passive Worker On-Demand
 ```
 1. User queries: "latest AI news from arxiv.org"
 2. Gateway API checks Redis → Not found
@@ -475,7 +532,7 @@ Sources are configured in `sources.json` with the following structure:
 
 ---
 
-## Scalability Considerations
+### Scalability Considerations
 
 - **Horizontal Scaling**: Add more workers as load increases
 - **Vertical Scaling**: Increase worker resources for heavy sources
@@ -486,7 +543,7 @@ Sources are configured in `sources.json` with the following structure:
 
 ---
 
-## Security & Compliance
+### Security & Compliance
 
 - **Rate Limiting**: Respect robots.txt and source rate limits
 - **User-Agent Rotation**: Avoid detection and blocking
@@ -497,7 +554,7 @@ Sources are configured in `sources.json` with the following structure:
 
 ---
 
-## Monitoring & Observability
+### Monitoring & Observability
 
 - **Metrics**: Crawl success rate, latency, queue depth, worker utilization
 - **Logging**: Structured logging for all operations
@@ -507,9 +564,9 @@ Sources are configured in `sources.json` with the following structure:
 
 ---
 
-## Quick Start Guide
+### Quick Start Guide
 
-### Installation
+#### Installation
 
 1. **Install Dependencies**:
    ```bash
@@ -563,7 +620,7 @@ Sources are configured in `sources.json` with the following structure:
    python backend_orchestrator.py
    ```
 
-### Usage Example
+#### Usage Example
 
 ```python
 from backend_orchestrator import BackendOrchestrator
@@ -586,7 +643,7 @@ task_id = orchestrator.request_crawl(
 )
 ```
 
-### Project Structure
+#### Project Structure
 
 ```
 DEV/
@@ -620,11 +677,11 @@ DEV/
 └── README.md                         # This file
 ```
 
-### Docker Compose Environments (Profiles)
+#### Docker Compose Environments (Profiles)
 
 The project uses a single `docker-compose.yml` file with profiles for different environments:
 
-#### **Testing Profile** (`--profile testing`)
+##### **Testing Profile** (`--profile testing`)
 - Minimal resources (1 active, 1 passive worker)
 - Short timeouts for quick testing
 - No auto-restart
@@ -632,7 +689,7 @@ The project uses a single `docker-compose.yml` file with profiles for different 
 - No Vector DB (uses localhost)
 - **Usage**: `make test` or `docker-compose --profile testing up`
 
-#### **Development Profile** (`--profile dev`)
+##### **Development Profile** (`--profile dev`)
 - Moderate resources (2 active, 2 passive workers)
 - Includes Vector DB (ChromaDB)
 - Optional Redis Commander UI (with `--profile tools`)
@@ -640,7 +697,7 @@ The project uses a single `docker-compose.yml` file with profiles for different 
 - **Usage**: `make dev` or `docker-compose --profile dev up`
 - **With tools**: `make dev-tools` (includes Redis Commander)
 
-#### **Production Profile** (`--profile prod`)
+##### **Production Profile** (`--profile prod`)
 - Full scale (5 active, 5 passive workers)
 - Resource limits and reservations
 - Persistent volumes
@@ -650,7 +707,7 @@ The project uses a single `docker-compose.yml` file with profiles for different 
 - Read-only volume mounts
 - **Usage**: `make prod` or `docker-compose --profile prod up -d`
 
-### Makefile Commands
+#### Makefile Commands
 
 ```bash
 make test        # Start testing environment
@@ -666,7 +723,7 @@ make clean       # Remove all containers and volumes
 make dev-tools   # Start dev with additional tools (Redis Commander)
 ```
 
-### Key Features
+#### Key Features
 
 ✅ **Credibility-Based Source Management**: Separate handling of 85+ credibility sources vs verification sources  
 ✅ **Intelligent Rate Limiting**: Multi-level rate limiting to respect source policies  
@@ -677,7 +734,7 @@ make dev-tools   # Start dev with additional tools (Redis Commander)
 
 ---
 
-## Future Enhancements
+### Future Enhancements
 
 - **Machine Learning**: Predict popular content for proactive caching
 - **Content Quality Scoring**: Rank articles by relevance and quality
