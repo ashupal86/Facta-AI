@@ -8,7 +8,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node dist/index.js",
     "dev": "tsx src/index.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "migrate": "tsx src/scripts/migrate.ts"
   },
   "author": "",
   "license": "ISC",
@@ -20,11 +21,13 @@
     "dotenv": "^16.4.7",
     "exa-js": "^2.0.11",
     "ioredis": "^5.8.2",
+    "pg": "^8.16.3",
     "zod": "^3.24.1"
   },
   "devDependencies": {
     "@types/express": "^5.0.5",
     "@types/node": "^24.10.1",
+    "@types/pg": "^8.11.10",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   }
