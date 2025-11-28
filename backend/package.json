@@ -17,6 +17,7 @@
     "@ai-sdk/google": "^2.0.44",
     "@google/genai": "^1.30.0",
     "@google/generative-ai": "^0.24.1",
+    "@pinecone-database/pinecone": "^6.1.3",
     "ai": "^5.0.104",
     "dotenv": "^16.4.7",
     "exa-js": "^2.0.11",
