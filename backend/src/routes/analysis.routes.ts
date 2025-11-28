@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+
 import { Router } from 'express';
 import { ClaimNormalizationService } from '../services/normalization.service.js';
 import { QueueService } from '../services/queue.js';
