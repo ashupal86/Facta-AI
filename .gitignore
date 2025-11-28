@@ -1,0 +1,57 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# dotenv environment variables
+.env
+.env.*.local
+.env.local
+
+# Node modules
+node_modules/
+
+# TypeScript build output
+dist/
+build/
+out/
+
+# TS incremental build files
+*.tsbuildinfo
+
+# Debugging
+*.log
+npm-debug.log*
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+
+# Mac / Linux / Windows files
+.DS_Store
+Thumbs.db
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Temporary files
+.tmp/
+temp/
+
+# Prisma (if using)
+prisma/*.db
+prisma/migrations/
+
+# Docker
+docker-data/
