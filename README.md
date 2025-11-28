@@ -54,6 +54,57 @@ This system is a distributed news/blog crawler and orchestration platform that p
 
 ---
 
+### Flowchart
+
+```mermaid
+flowchart TD
+  %% === ENTRY ===
+  A[User Input / Claim] --> B[EXPRESS GATEWAY + NORMALIZER OpenAI \n- Clean & normalize claim\n- Extract entities & media type\n- Generate claim_hash sha256]
+
+  %% === CACHE ===
+  B --> C{REDIS HOT CACHE\ncache:claim:claim_hash}
+  C -->|HIT| D[REUSE CACHED VERDICT\n+ Pinecone memory context]
+  C -->|MISS| E{PINECONE SEMANTIC OPS}
+
+  %% === SEMANTIC LAYER (PINECONE) ===
+  E -->|Semantic Expand\n top_k = 5| F[Pinecone Semantic Expand\n- fetch related memory]
+  E -->|Semantic Search\n top_k = 3\n if sim ≥ 0.88 → Prisma| G[Pinecone Semantic Search]
+
+  %% === ORCHESTRATION ===
+  F --> H[FASTAPI ORCHESTRATION ENGINE\n- Build workflow graph\n- Trigger Celery tasks\n- Save task_id → Redis]
+  G --> H
+
+  %% === WORKER PIPELINE (ASYNC TASKS) ===
+  H --> I[WORKER PIPELINE]
+
+  subgraph WORKERS [WORKER PIPELINE]
+    direction TB
+    I1[1. Exa verified news search]
+    I2[2. Evidence extraction]
+    I3[3. Media forensics img/video]
+    I4[4. Credibility scoring]
+    I5[5. Contradiction analysis]
+
+    I1 --> I2 --> I3 --> I4 --> I5
+  end
+
+  %% === FINAL VERDICT AGENT ===
+  D --> J[FINAL VERDICT AGENT LLM\n- Combine cached + new evidence\n- True / False / Misleading\n- Confidence + explanation]
+  I5 --> J
+
+  %% === MEMORY WRITE LAYER ===
+  J --> K[MEMORY WRITE]
+  K --> L[Redis → cache verdict]
+  K --> M[Pinecone → store embedding + summary]
+  K --> N[Prisma SQL DB →\n full claim history + evidence]
+
+  %% === BLOG / CONTENT LAYER ===
+  J --> O[BLOG WRITER AGENT LLM\n- Auto-generate fact-check article\n- Save draft]
+  O --> P[Prisma → /blog/drafts]
+
+  %% === RESPONSE ===
+  J --> Q[FINAL RESPONSE TO USER\n- Verdict + confidence\n- Key evidence + sources\n- Optional blog link]
+```
 ### Client Serving Flowchart
 
 ```mermaid
