@@ -4,5 +4,7 @@ export type RecordType = {
     metadata: {
         text: string;
         category: string;
+        verdict?: string;
+        summary?: string;
     };
 };

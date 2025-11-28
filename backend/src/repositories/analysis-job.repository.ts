@@ -220,4 +220,20 @@ export class AnalysisJobRepository {
         );
         return parseInt(result.rows[0]?.count || '0', 10);
     }
+    async updateStatus(id: string, status: string, result?: string, error?: string): Promise<AnalysisJob> {
+        const queryText = `
+            UPDATE analysis_jobs
+            SET status = $2, result = $3, error = $4, updated_at = NOW()
+            WHERE id = $1
+            RETURNING *
+        `;
+        const params = [id, status, result || null, error || null];
+        const res = await query(queryText, params);
+
+        if (!res.rows[0]) {
+            throw new Error('Failed to update analysis job status');
+        }
+
+        return res.rows[0];
+    }
 }
