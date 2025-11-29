@@ -42,8 +42,12 @@ export const analysisService = {
     async submitClaim(claim: string): Promise<SubmitClaimResponse> {
         const response = await postApi(apiEndPoints.analysis.analyze, { claim });
 
+        console.log('Submit claim response:', { status: response.status, data: response.data });
+
         if (response.status !== 200) {
-            throw new Error(response.data?.error || 'Failed to submit claim');
+            const errorMessage = response.data?.error || response.data?.message || JSON.stringify(response.data) || 'Failed to submit claim';
+            console.error('Submit claim failed:', errorMessage);
+            throw new Error(errorMessage);
         }
 
         return response.data;

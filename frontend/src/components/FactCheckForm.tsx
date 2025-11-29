@@ -54,7 +54,13 @@ export default function FactCheckForm({ onSubmitSuccess }: FactCheckFormProps) {
             }
         } catch (error: any) {
             console.error('Error submitting claim:', error);
-            toast.error(error.message || 'Failed to submit claim');
+            console.error('Error details:', {
+                message: error.message,
+                response: error.response,
+                stack: error.stack
+            });
+            const errorMsg = error.message || 'Failed to submit claim. Please check console for details.';
+            toast.error(errorMsg);
         } finally {
             setIsSubmitting(false);
         }
@@ -84,8 +90,8 @@ export default function FactCheckForm({ onSubmitSuccess }: FactCheckFormProps) {
                         onClick={() => setMode('async')}
                         disabled={isSubmitting}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${mode === 'async'
-                                ? 'bg-primary text-white'
-                                : 'bg-surface text-secondary hover:bg-surface/80'
+                            ? 'bg-primary text-white'
+                            : 'bg-surface text-secondary hover:bg-surface/80'
                             }`}
                     >
                         <div className="flex items-center gap-2">
@@ -98,8 +104,8 @@ export default function FactCheckForm({ onSubmitSuccess }: FactCheckFormProps) {
                         onClick={() => setMode('sync')}
                         disabled={isSubmitting}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${mode === 'sync'
-                                ? 'bg-primary text-white'
-                                : 'bg-surface text-secondary hover:bg-surface/80'
+                            ? 'bg-primary text-white'
+                            : 'bg-surface text-secondary hover:bg-surface/80'
                             }`}
                     >
                         <div className="flex items-center gap-2">
