@@ -2,6 +2,7 @@
 import { Router } from 'express';
 import { ClaimNormalizationService } from '../services/normalization.service.js';
 import { QueueService } from '../services/queue.js';
+import { AnalysisJobRepository } from '../repositories/analysis-job.repository.js';
 import { redis } from '../lib/redis.js';
 
 const router = Router();
@@ -95,6 +96,18 @@ router.post('/sync', async (req, res) => {
     } catch (error: any) {
         console.error('Sync analysis request failed:', error);
         res.status(500).json({ error: 'Failed to process synchronous analysis request' });
+    }
+});
+
+// GET /jobs/:userId
+router.get('/jobs/:userId', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const jobs = await AnalysisJobRepository.findByUserId(userId);
+        res.json({ success: true, data: { jobs } });
+    } catch (error) {
+        console.error('Failed to fetch user jobs:', error);
+        res.status(500).json({ error: 'Failed to fetch user jobs' });
     }
 });
 

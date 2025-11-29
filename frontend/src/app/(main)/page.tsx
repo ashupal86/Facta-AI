@@ -22,16 +22,36 @@ export default function Home() {
 
     const fetchAnalysis = async () => {
       setLoading(true);
+      // Use the jobs endpoint with userId
       const response = await getApi(apiEndPoints.analysis.jobs(user.id));
 
       if (response.status !== 200) {
-        setError('Failed to fetch analysis');
+        // If 404, it might just mean no jobs yet, or endpoint not ready. 
+        // But let's assume 404 means error for now unless we know otherwise.
+        // Actually, if the backend returns 404 for no jobs, we should handle it.
+        // But usually list endpoints return empty array.
+        console.error("Failed to fetch jobs:", response);
+        setError('Failed to fetch analysis history');
         setLoading(false);
         return;
       }
 
-      if (response.data?.success && response.data?.data?.jobs) {
-        setAnalysis(response.data.data.jobs);
+      if (response.data) {
+        // Check if response.data is the array directly or if it's wrapped
+        // Backend usually returns JSON. If it's a list of jobs, it might be response.data directly or response.data.data
+        // Let's inspect the backend response structure for /jobs/:userId if possible.
+        // Since I can't see the backend code for that specific route right now (it wasn't in the file view),
+        // I'll assume a standard wrapper or array. 
+        // The previous code expected response.data.data.jobs.
+        // Let's stick to a safe check.
+        const jobsData = response.data.data || response.data;
+        if (Array.isArray(jobsData)) {
+          setAnalysis(jobsData);
+        } else if (jobsData.jobs && Array.isArray(jobsData.jobs)) {
+          setAnalysis(jobsData.jobs);
+        } else {
+          setAnalysis([]);
+        }
       } else {
         setAnalysis([]);
       }
