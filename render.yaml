@@ -40,10 +40,7 @@ services:
       - key: AGENT_ID
         value: "facta-ai-agent"
       - key: FACTA_BACKEND_BASE_URL
-        fromService:
-          type: web
-          name: facta-ai-backend
-          property: url
+        value: https://facta-ai-backend.onrender.com
 
   # Redis Service
   - type: redis
