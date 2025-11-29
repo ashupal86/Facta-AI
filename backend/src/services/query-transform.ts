@@ -41,6 +41,7 @@ Your objective is to analyze user input (such as news articles, headlines, socia
 
 1. **Normalize the Claim**:
    - Extract the core claim from the user input.
+   - If the input is a URL, extract the likely claim or headline from the URL string itself.
    - Rephrase it into a clear, concise, and neutral statement (\`normalized_claim\`).
 
 2. **Categorize Content**:
