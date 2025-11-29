@@ -9,13 +9,16 @@ const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     max: 20, // Maximum number of clients in the pool
     idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-    connectionTimeoutMillis: 10000, // Return an error after 10 seconds if connection could not be established
+    connectionTimeoutMillis: 30000, // Return an error after 30 seconds if connection could not be established
 });
 
 // Handle pool errors
 pool.on('error', (err: Error) => {
     console.error('Unexpected error on idle client', err);
-    process.exit(-1);
+    // Don't exit process in dev, just log
+    if (process.env.NODE_ENV === 'production') {
+        process.exit(-1);
+    }
 });
 
 /**
@@ -26,19 +29,33 @@ export const query = async <T extends QueryResultRow = any>(
     params?: any[]
 ): Promise<QueryResult<T>> => {
     const start = Date.now();
-    try {
-        const result = await pool.query<T>(text, params);
-        const duration = Date.now() - start;
+    let retries = 3;
 
-        if (process.env.NODE_ENV === 'development') {
-            console.log('Executed query', { text, duration, rows: result.rowCount });
+    while (retries > 0) {
+        try {
+            const result = await pool.query<T>(text, params);
+            const duration = Date.now() - start;
+
+            if (process.env.NODE_ENV === 'development') {
+                console.log('Executed query', { text, duration, rows: result.rowCount });
+            }
+
+            return result;
+        } catch (error: any) {
+            console.error(`Database query error (retries left: ${retries - 1}):`, error.message);
+
+            // Retry on connection errors
+            if (error.message.includes('timeout') || error.message.includes('Connection terminated') || error.message.includes('ECONNREFUSED')) {
+                retries--;
+                if (retries === 0) throw error;
+                await new Promise(res => setTimeout(res, 1000)); // Wait 1s before retry
+                continue;
+            }
+
+            throw error;
         }
-
-        return result;
-    } catch (error) {
-        console.error('Database query error:', error);
-        throw error;
     }
+    throw new Error('Database query failed after retries');
 };
 
 /**

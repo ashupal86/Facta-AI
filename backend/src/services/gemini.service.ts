@@ -26,7 +26,7 @@ export async function generateBlogMetadata(claim: string, context: string) {
     
     Tasks:
     1. Generate a catchy, click-worthy title.
-    2. Write a short, engaging summary (teaser) of the findings.
+    2. Write a detailed and engaging summary (approx. 80-100 words) of the findings, explaining the context and why the verdict was reached.
     3. Determine the verdict based on the evidence.
     4. Extract 3-5 key highlights or bullet points.
     

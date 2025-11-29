@@ -96,6 +96,84 @@
             ]
         },
         {
+            "name": "Blog",
+            "item": [
+                {
+                    "name": "Generate Blog",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"claim\": \"The earth is flat.\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/blog/generate",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "blog",
+                                "generate"
+                            ]
+                        },
+                        "description": "Generate a new blog post from a claim."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Blog List",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/blog/list",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "blog",
+                                "list"
+                            ]
+                        },
+                        "description": "Get a list of all generated blog posts (metadata only)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Blog By ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/blog/:id",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "blog",
+                                ":id"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "UUID_HERE",
+                                    "description": "The UUID of the blog post"
+                                }
+                            ]
+                        },
+                        "description": "Get the full content of a specific blog post."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
             "name": "System",
             "item": [
                 {

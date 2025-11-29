@@ -5,6 +5,7 @@ import { evidenceExtractionProcessor } from './evidence.worker.js';
 import { analysisProcessor } from './credibility.worker.js';
 import { generateVerdict } from '../agents/verdict.agent.js';
 import { generateBlogDraft } from '../agents/blog.agent.js';
+import { BlogService } from '../services/blog.service.js';
 import { redis } from '../lib/redis.js';
 import { upsertVectors } from '../lib/pinecone.js';
 import { queryEmbedding } from '../services/ragQuery.js';
@@ -39,8 +40,17 @@ export async function processAnalysisJob(job: Job<AnalysisJobData>): Promise<Ana
         const verdict = await generateVerdict(query, evidenceResult.evidence, analysisResult.analysis);
         await job.updateProgress(85);
 
-        // 5. Blog Writer Agent
-        const blogDraft = await generateBlogDraft(query, verdict, evidenceResult.evidence);
+        // 5. Background Blog Generation
+        // We trigger this asynchronously and don't wait for it to finish to return the analysis result.
+        // However, we log it.
+        console.log(`[Job ${job.id}] Triggering background blog generation for: ${query}`);
+
+        // We use a fire-and-forget approach here, but we catch errors to avoid crashing the process.
+        // Ideally, this should be a separate job in a 'blog-queue', but for now we run it in the background.
+        BlogService.generateBlog(query).catch(err => {
+            console.error(`[Job ${job.id}] Background blog generation failed:`, err);
+        });
+
         await job.updateProgress(95);
 
         // 6. Save Results
@@ -48,7 +58,7 @@ export async function processAnalysisJob(job: Job<AnalysisJobData>): Promise<Ana
             verdict,
             analysis: analysisResult.analysis,
             evidence: evidenceResult.evidence,
-            blogDraft,
+            blogDraft: null, // Deprecated in favor of full blog system
             timestamp: new Date().toISOString()
         };
 
