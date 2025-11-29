@@ -66,6 +66,25 @@ export function exaFilter(exa: any[]) {
     for (let i = 0; i < exa.length; i++) {
         exaData.push(exa[i].context);
     }
-    console.log(exaData)
     return exaData;
+}
+
+export async function searchClaim(query: string): Promise<string> {
+    try {
+        console.log(`Searching Exa for: ${query}`);
+        const result = await exa.searchAndContents(query, {
+            text: true,
+            type: "auto",
+            numResults: 5,
+            category: "news",
+            summary: true
+        });
+
+        return result.results.map((r: any) =>
+            `Title: ${r.title}\nURL: ${r.url}\nSummary: ${r.summary}\nText: ${r.text.substring(0, 500)}...`
+        ).join('\n\n');
+    } catch (error) {
+        console.error("Exa search failed:", error);
+        return "";
+    }
 }

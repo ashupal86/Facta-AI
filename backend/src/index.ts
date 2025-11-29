@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import morgan from 'morgan';
 import analysisRoutes from './routes/analysis.routes.js';
+import blogRoutes from './routes/blog.routes.js';
 import { QueueService, WorkerService, startAutoScaling, startMonitoring } from './services/queue.js';
 import { checkRedisHealth, getRedisStatus, closeRedisConnection } from './lib/redis.js';
 import { transformQuery } from './services/query-transform.js';
@@ -24,7 +25,8 @@ app.use(morgan('dev'));
 
 // Routes
 app.use('/analyze', analysisRoutes);
-// app.use('/api/analysis', analysisRoutes); // User used this prefix, keeping both for now or sticking to one. 
+app.use('/api/analysis', analysisRoutes);
+app.use('/blog', blogRoutes); // User used this prefix, keeping both for now or sticking to one. 
 // My previous test used /analyze. I'll map /api/analysis to the same routes for compatibility.
 app.use('/api/analysis', analysisRoutes);
 
@@ -96,13 +98,13 @@ app.get('/api/monitoring/dashboard', async (req, res) => {
 
 // Start server
 app.listen(PORT, async () => {
-    console.log(`🚀 Facta AI Server is running on port ${PORT}`);
+    console.log(`🚀 Facta AI Server is running on port ${PORT} `);
 
     // Initialize monitoring and auto-scaling
     try {
         startMonitoring();
         startAutoScaling();
-        console.log(`🔄 Auto-scaling and monitoring started`);
+        console.log(`🔄 Auto - scaling and monitoring started`);
 
         // Auto-start the integrated worker
         await WorkerService.startWorker();

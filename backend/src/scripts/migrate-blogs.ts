@@ -10,36 +10,20 @@ async function runMigration() {
     try {
         console.log('Starting database migration...');
 
-        // Read the migration file
-        // Read the migration files
-        const migrationPath1 = join(__dirname, '../../migrations/001_initial_schema.sql');
         const migrationPath2 = join(__dirname, '../../migrations/002_create_blog_table.sql');
-
-        const migrationSQL1 = readFileSync(migrationPath1, 'utf-8');
         const migrationSQL2 = readFileSync(migrationPath2, 'utf-8');
 
         // Execute the migrations
-        await db.query(migrationSQL1);
         await db.query(migrationSQL2);
 
         console.log('✅ Migration completed successfully!');
-        console.log('Tables created:');
-        console.log('  - User');
-        console.log('  - AnalysisJob');
-        console.log('Enums created:');
-        console.log('  - Category');
-        console.log('  - JobStatus');
-
         process.exit(0);
     } catch (error: any) {
         console.error('❌ Migration failed:', error.message);
-
-        // Check if tables already exist
         if (error.message.includes('already exists')) {
             console.log('⚠️  Tables already exist. Migration skipped.');
             process.exit(0);
         }
-
         process.exit(1);
     }
 }
