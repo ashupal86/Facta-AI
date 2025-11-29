@@ -1,5 +1,6 @@
 import { createHash } from 'crypto';
 import { transformQuery } from './query-transform.js';
+import { checkRelevance } from '../agents/guardrail.agent.js';
 import { redis } from '../lib/redis.js';
 import { index as pineconeIndex, ragQuery } from '../lib/pinecone.js';
 import { QueueService } from '../services/queue.js';
@@ -11,6 +12,18 @@ export class ClaimNormalizationService {
      */
     static async processClaim(input: string) {
         console.log(`Processing claim: ${input.substring(0, 50)}...`);
+
+        // 0. Guardrail Check
+        const guardrail = await checkRelevance(input);
+
+        if (!guardrail.isRelevant) {
+            console.log(`⛔ Guardrail rejected input: ${guardrail.reason}`);
+            return {
+                status: 'rejected',
+                message: guardrail.message,
+                original_input: input
+            };
+        }
 
         // 1. Normalize and Transform
         const transformed = await transformQuery(input);

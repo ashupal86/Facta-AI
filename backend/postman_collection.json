@@ -38,6 +38,35 @@
                     "response": []
                 },
                 {
+                    "name": "Submit Claim (Sync)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"claim\": \"The moon is made of cheese.\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/analysis/sync",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "analysis",
+                                "sync"
+                            ]
+                        },
+                        "description": "Submit a text claim and wait for the final result (Synchronous)."
+                    },
+                    "response": []
+                },
+                {
                     "name": "Get Analysis Status/Result",
                     "request": {
                         "method": "GET",

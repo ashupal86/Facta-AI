@@ -221,14 +221,19 @@ export class AnalysisJobRepository {
         return parseInt(result.rows[0]?.count || '0', 10);
     }
     async updateStatus(id: string, status: string, result?: string, error?: string): Promise<AnalysisJob> {
+        let resultJson = result ? JSON.parse(result) : {};
+        if (error) {
+            resultJson = { ...resultJson, error };
+        }
+
         const queryText = `
-            UPDATE analysis_jobs
-            SET status = $2, result = $3, error = $4, updated_at = NOW()
+            UPDATE "public"."AnalysisJob"
+            SET status = $2, result = $3, "updatedAt" = CURRENT_TIMESTAMP
             WHERE id = $1
             RETURNING *
         `;
-        const params = [id, status, result || null, error || null];
-        const res = await query(queryText, params);
+        const params = [id, status, JSON.stringify(resultJson)];
+        const res = await query<AnalysisJob>(queryText, params);
 
         if (!res.rows[0]) {
             throw new Error('Failed to update analysis job status');
