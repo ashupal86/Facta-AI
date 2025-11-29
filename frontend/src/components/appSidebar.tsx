@@ -7,8 +7,10 @@ import MaterialIcon from './common/material-icon';
 
 const navigationItems = [
   { href: '/', icon: 'update', label: 'Top updates' },
+  { href: '/chat', icon: 'chat', label: 'My Chats' },
   { href: '/headlines', icon: 'newspaper', label: 'Headlines' },
   { href: '/factcheck', icon: 'gavel', label: 'FactCheck' },
+  { href: '/monitoring', icon: 'monitor_heart', label: 'System Status' },
   { href: '/ask', icon: 'help_center', label: "Today's Ask" },
   { href: '/trending', icon: 'trending_up', label: 'Trending' },
   { href: '/saved', icon: 'bookmark', label: 'Saved' },
@@ -36,8 +38,8 @@ export function AppSidebar() {
                 key={item.href}
                 href={item.href}
                 className={`flex items-center gap-3 px-4 py-2.5 rounded-lg font-medium transition-colors ${isActive
-                    ? 'bg-primary/10 text-primary font-semibold'
-                    : 'text-secondary hover:bg-muted transition-colors'
+                  ? 'bg-primary/10 text-primary font-semibold'
+                  : 'text-secondary hover:bg-muted transition-colors'
                   }`}
               >
                 <MaterialIcon icon={item.icon} />

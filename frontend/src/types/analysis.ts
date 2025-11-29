@@ -83,10 +83,11 @@ export interface AnalysisMetadata {
 export interface Job {
   id: string;
   queueJobId: string;
-  status: 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED';
+  status: string;
   input: string;
-  result: string;
+  result: any;
   createdAt: string;
+  scrapedText?: string;
 }
 
 export interface JobsResponse {

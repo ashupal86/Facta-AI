@@ -96,12 +96,18 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     )
   }
 
-  if (responseData.data.analysis.status === "pending" || responseData.data.analysis.status === "running") {
-    return <AnalysisLoading progress={responseData.data.metadata.progress || 0} />
+  // Handle both direct response and wrapped response
+  const analysis = (responseData as any).data?.analysis || (responseData as any).analysis || responseData;
+  const metadata = (responseData as any).data?.metadata || (responseData as any).metadata;
+
+  const status = analysis?.status || (responseData as any).status;
+
+  if (status === "pending" || status === "running") {
+    return <AnalysisLoading progress={metadata?.progress || 0} />
   }
 
-  const analysis = responseData.data.analysis
-  const result = analysis.result
+  const resultRaw = analysis?.result || analysis;
+  const result = typeof resultRaw === 'string' ? JSON.parse(resultRaw) : resultRaw;
 
   // Determine user query from scrapedText or URL
   const userQuery = analysis.scrapedText || "Analyze this content"
