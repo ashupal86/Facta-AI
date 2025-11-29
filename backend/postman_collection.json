@@ -1,0 +1,170 @@
+{
+    "info": {
+        "_postman_id": "facta-ai-backend-collection",
+        "name": "Facta AI Backend",
+        "description": "API collection for Facta AI Backend services including claim analysis, queue monitoring, and health checks.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Analysis",
+            "item": [
+                {
+                    "name": "Submit Claim for Analysis",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"claim\": \"The moon is made of cheese.\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/analysis",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "analysis"
+                            ]
+                        },
+                        "description": "Submit a text claim for fact-checking analysis. Returns a job ID or cached result."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Submit Claim (Sync)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"claim\": \"The moon is made of cheese.\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/analysis/sync",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "analysis",
+                                "sync"
+                            ]
+                        },
+                        "description": "Submit a text claim and wait for the final result (Synchronous)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Analysis Status/Result",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/analysis/:jobId",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "analysis",
+                                ":jobId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "jobId",
+                                    "value": "1",
+                                    "description": "The Job ID returned from the submit endpoint"
+                                }
+                            ]
+                        },
+                        "description": "Check the status of an analysis job or retrieve the result if completed."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "System",
+            "item": [
+                {
+                    "name": "Health Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/health",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "health"
+                            ]
+                        },
+                        "description": "Check the health status of the API, Redis, and Queue."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Queue Stats",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/queue/stats",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "queue",
+                                "stats"
+                            ]
+                        },
+                        "description": "Get current statistics of the analysis queue (waiting, active, completed, failed)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Monitoring Dashboard",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/monitoring/dashboard",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "monitoring",
+                                "dashboard"
+                            ]
+                        },
+                        "description": "Get comprehensive system metrics including Redis status, queue health, and performance metrics."
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:4000",
+            "type": "string"
+        }
+    ]
+}
