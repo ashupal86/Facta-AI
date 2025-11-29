@@ -25,6 +25,26 @@ services:
       - key: PINECONE_API_KEY
         sync: false
 
+  # Agent Web Service
+  - type: web
+    name: facta-ai-agent
+    env: docker
+    dockerContext: project-nanda
+    dockerfilePath: project-nanda/Dockerfile
+    plan: free
+    envVars:
+      - key: PORT
+        value: 7000
+      - key: ENABLE_TUNNEL
+        value: "false"
+      - key: AGENT_ID
+        value: "facta-ai-agent"
+      - key: FACTA_BACKEND_BASE_URL
+        fromService:
+          type: web
+          name: facta-ai-backend
+          property: url
+
   # Redis Service
   - type: redis
     name: facta-ai-redis
