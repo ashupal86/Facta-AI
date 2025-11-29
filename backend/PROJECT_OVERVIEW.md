@@ -13,7 +13,7 @@ This flowchart illustrates the complete lifecycle of a request, from user input 
 ```mermaid
 graph TD
     %% Client Layer
-    Client[👤 User / Frontend] -->|POST /api/analysis| API[⚡ API Gateway (Express)]
+    Client[👤 User / Frontend] -->|POST /api/analysis| API[⚡ API Gateway Express]
 
     %% Normalization Layer
     subgraph "1. Ingestion & Normalization"
@@ -26,9 +26,9 @@ graph TD
 
     %% Caching Layer
     subgraph "2. Hybrid Caching Strategy"
-        Hash --> RedisCache{⚡ Redis (Hot Cache)}
+        Hash --> RedisCache{⚡ Redis-Hot Cache}
         RedisCache -- "Hit" --> ReturnCached[✅ Return Cached Verdict]
-        RedisCache -- "Miss" --> PineconeCache{🌲 Pinecone (Semantic Cache)}
+        RedisCache -- "Miss" --> PineconeCache{🌲 Pinecone Semantic Cache}
         PineconeCache -- "High Similarity (>0.95)" --> ReturnCached
         PineconeCache -- "Miss" --> Queue[📥 BullMQ Job Queue]
     end
@@ -55,8 +55,8 @@ graph TD
         FinalResult --> BlogTrigger[⚡ Trigger Background Blog]
         BlogTrigger -.-> BlogService[✍️ Blog Service]
         
-        BlogService --> GeminiMeta[🤖 Gemini (Metadata)]
-        BlogService --> GeminiContent[🤖 Gemini (Long-form Content)]
+        BlogService --> GeminiMeta[🤖 Gemini Metadata]
+        BlogService --> GeminiContent[🤖 Gemini Long-form Content]
         
         GeminiContent --> BlogDB[(Postgres Blog Table)]
         GeminiContent --> BlogVector[(Pinecone Blog Index)]
