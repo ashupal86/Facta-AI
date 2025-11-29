@@ -1,0 +1,4 @@
+nest @ git+https://github.com/projnanda/NEST.git@v1
+requests
+python-dotenv
+pyngrok
