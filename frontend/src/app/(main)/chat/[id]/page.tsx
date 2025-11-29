@@ -3,8 +3,7 @@
 import * as React from "react"
 import { useEffect, useState, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { getApi } from "@/helpers/api"
-import { apiEndPoints } from "@/helpers/apiEndpoints"
+import { analysisService } from "@/services/analysisService"
 import { toast } from "sonner"
 import Loading from "@/components/common/loading"
 import { AnalysisLoading } from "./analysis-loading"
@@ -24,31 +23,20 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
   const fetchAnalysis = useCallback(async () => {
     try {
-      const response = await getApi(`${apiEndPoints.analysis.status(jobId)}`)
+      const response = await analysisService.getJobStatus(String(jobId));
 
-      if (response.status !== 200) {
-        console.error("Failed to fetch analysis data", {
-          response: response.data,
-          status: response.status,
-        })
-        toast.error("Failed to fetch analysis data")
-        setError("Failed to fetch analysis data")
-        setIsLoading(false)
-        return
-      }
+      setResponseData(response as any);
+      setIsLoading(false);
 
-      setResponseData(response.data)
-      setIsLoading(false)
-
-      if (response.data.data.analysis.status === "pending" || response.data.data.analysis.status === "running") {
-        startPolling()
+      if (response.status === "pending" || response.status === "running") {
+        startPolling();
       } else {
-        stopPolling()
+        stopPolling();
       }
-    } catch (error) {
-      console.error("Error fetching analysis:", error)
-      setError("Failed to fetch analysis data")
-      setIsLoading(false)
+    } catch (error: any) {
+      console.error("Error fetching analysis:", error);
+      setError(error.message || "Failed to fetch analysis data");
+      setIsLoading(false);
     }
   }, [jobId])
 
