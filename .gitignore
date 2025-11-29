@@ -1,13 +1,12 @@
-# Logs
+# Node.js dependencies and logs
 logs
-*.log
+logs/*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
 # Runtime data
-pids
 *.pid
 *.seed
 *.pid.lock
@@ -25,7 +24,7 @@ dist/
 build/
 out/
 
-# TS incremental build files
+# TypeScript incremental build files
 *.tsbuildinfo
 
 # Debugging
@@ -55,3 +54,44 @@ prisma/migrations/
 
 # Docker
 docker-data/
+
+# Python virtual environments and dependencies
+# Virtual environment folders
+venv/
+.env/
+env/
+.venv/
+
+# Python package manager caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Python dependency directories
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Python-specific logs
+*.log
+
+# Python build directories
+build/
+dist/
+
+# Python test coverage data
+.coverage
+.coverage.*
+nosetests.xml
+pytest.xml
+*.cover
+*.hypothesis/
+
+# PyCharm-specific
+.idea/
+
+# VSCode-specific
+.vscode/
